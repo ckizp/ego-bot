@@ -1,47 +1,43 @@
 const fs = require('fs');
 
-class JSON_Object {
+class JSON_Config {
     constructor(name) {
         this.name = name;
-        this.file = ((typeof(file) !== undefined) ? (fs.readFileSync(name)) : `
-        {
-            token : "MTA0NTQxNDE4NTg3OTc1MjgwNA.GaVd8S.-HYlppZKrRgQiklZ5Iw3I7xQdaj5PXx58-vo_U",
-            servers : [
+        this.file = JSON.parse(fs.readFileSync(name));
+    }
 
-            ]
+    addServer(server) {
+        if (!this.file.servers.forEach((array) => {
+            if (array.id == server.id)
+                return true;
+        })) {
+            this.file.servers.push(server.serv);
+            fs.writeFileSync(this.name, JSON.stringify(this.file, null, 3));
         }
-        `);
     }
 
-    newServer(id) {
-        this.file.servers.push({
-            serverId: `${id}`,
-            welcomeBackgroundURL : null
-        })
-    }
-
-    updateServer(id, options = {welcomeBackgroundURL}) {
-        let index = this.file.findIndex(server => server.id = id);
+    updateServer(serv, welcomeBackgroundURL) {
+        let index = this.file.servers.findIndex(server => server.id = serv.id);
         this.file.servers[index].welcomeBackgroundURL = welcomeBackgroundURL;
-        fs.writeFile(this.name, JSON.stringify(file, null, 3)); 
+        fs.writeFileSync(this.name, JSON.stringify(this.file, null, 3));
     }
 }
 
-/*class Server extends JSON_Object {
-    constructor(id) {
-        this.id = id;
+class Server {
+    constructor(server_id) {
+        this.serv = {
+            id : server_id,
+            welcomeBackgroundURL: "blue-lock.png"
+        }
     }
+}
 
-    updateServer(options = {welcomeBackgroundURL}) {
-        let index = this.file.findIndex(server => server.id = this.id);
-        this.file.servers[index].welcomeBackgroundURL = welcomeBackgroundURL;
-        fs.writeFile(this.name, JSON.stringify(file, null, 3)); 
-    }
-}*/
+const obj = new JSON_Config("config.json");
 
-const obj = new JSON_Object("config.json");
+const serv = new Server("647800671218958336");
+obj.addServer(serv);
 
-obj.updateServer("740468305655103580", {welcomeBackgroundURL: "blue-lock.png"})
+obj.updateServer(serv, "bluck-lock2.png");
 
 
 
