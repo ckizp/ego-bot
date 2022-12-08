@@ -1,3 +1,4 @@
+const { WelcomeChannel } = require('discord.js');
 const fs = require('fs');
 
 class JSON_Config {
@@ -21,13 +22,40 @@ class JSON_Config {
         }
     }
 
-    insertAttribute(obj) {
+    insert(obj) {
+        let haveToWrite = new Boolean(false);
         this.file.servers.forEach((server) => {
-            Object.assign(server, obj);
+            if (server !== Object.assign(server, obj)) {
+                Object.assign(server, obj)
+                if (!haveToWrite) haveToWrite = true;
+            }
         })
-        console.log(obj);
-        fs.writeFileSync(this.name, JSON.stringify(this.file, null, 3));
+        if (haveToWrite) 
+            fs.writeFileSync(this.name, JSON.stringify(this.file, null, 3));
+    }
+
+    deleteProperty(key) {
+        let haveToWrite = new Boolean(false);
+        this.file.servers.forEach((server) => {
+            delete server[key];
+        })
+        if (haveToWrite) 
+            fs.writeFileSync(this.name, JSON.stringify(this.file, null, 3));
+    }
+
+    alter(server_id, key, newValue) {
+        if (this.file.servers[this.getServerIndexWithID(server_id)][key] !== newValue) {
+            this.file.servers[this.getServerIndexWithID(server_id)][key] = newValue;
+            fs.writeFileSync(this.name, JSON.stringify(this.file, null, 3));
+        }
+    }
+
+    getServerIndexWithID(server_id) {
+        return this.file.servers.findIndex((server) => server.id === server_id);
     }
 }
+
+const obj = new JSON_Config("config.json");
+
 
 module.exports.JSON_Config = JSON_Config;
