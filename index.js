@@ -1,6 +1,8 @@
 const { Client, GatewayIntentBits, AttachmentBuilder, EmbedBuilder } = require("discord.js");
+const { JSON_Config, Server } = require("./JSON_Object");
 const Canvas = require("canvas");
-const { token } = require("./config.json");
+
+const obj = new JSON_Config("config.json");
 
 const client = new Client({ intents: [
     GatewayIntentBits.Guilds,
@@ -10,6 +12,17 @@ const client = new Client({ intents: [
     GatewayIntentBits.GuildMessageReactions
 ]
 });
+
+client.on("ready", async () => {
+    client.guilds.cache.map((guild) => {obj.addServer(guild.id)});
+    obj.insertAttribute({welcomeChannel: undefined});
+    await client.application.commands.set([
+        {
+            name: "serverinfos",
+            description: "display server informations"
+        }
+    ]);
+}); 
 
 var canvas = Canvas.createCanvas(1024, 500);
 var ctx = canvas.getContext("2d");
@@ -30,20 +43,13 @@ Canvas.loadImage("blue-lock.png")
         ctx.fill();
     });
 
-client.login(token)
+client.login(obj.file.token)
     .then(() => console.log("Connected"))
     .catch((error) => console.log("Error : " + error));
 
-client.on("ready", async () => {
-    await client.application.commands.set([
-        {
-            name: "serverinfos",
-            description: "display server informations"
-        }
-    ]);
-}); 
-
-var toggle = false;
+client.on("guildCreate", (guild) => {
+    obj.addServer(guild.id);
+})
 
 client.on("interactionCreate", (interaction) => {
     let interactionChannel = interaction.channel;
@@ -52,7 +58,7 @@ client.on("interactionCreate", (interaction) => {
         case "serverinfos":
             /*let serverInfoEmbed = new EmbedBuilder()
             .setTitle(`Informations sur le serveur ${interaction.guild.cache.name}`)*/
-            interactionChannel.send(`${interaction.channel}`);
+            interaction.channel.send(client.guilds.cache.map(m => `${m.name} | ${m.id}`).join("\n"))
         break;
         default:
             return;
@@ -84,9 +90,9 @@ client.on("guildMemberAdd", async (member) => {
         welcomeCanvas.context.stroke();
         welcomeCanvas.context.drawImage(img, 393, 47, 238, 238);
     });
-
     let attachment = new AttachmentBuilder(welcomeCanvas.toBuffer(), {name: `welcome-${member.id}.png`});
     try {
+        welcomeChannel.send()
     welcomeChannel.send({content: `Bienvenue à ${member} sur le serveur ${member.guild.name} !`, files: [attachment]})
     } catch(error) {
         console.log(error);
