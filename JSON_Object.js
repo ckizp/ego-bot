@@ -1,22 +1,21 @@
 const { WelcomeChannel } = require('discord.js');
 const fs = require('fs');
 
-class JSON_Config {
+class JSON_Guilds {
     constructor(name) {
         this.name = name;
         this.file = JSON.parse(fs.readFileSync(name));
     }
 
-    addServer(server_id) {
-        let isNewServer = new Boolean(true);
-        this.file.servers.forEach((array) => {
-            if (array.id === server_id)
-                isNewServer = false;
+    addGuild(guild_id) {
+        let isNewGuild = new Boolean(true);
+        this.file.guilds.forEach((array) => {
+            if (array.id === guild_id)
+                isNewGuild = false;
         });
-        if (isNewServer) {
-            this.file.servers.push({
-                id: server_id,
-                welcomeBackgroundURL: "default.png",
+        if (isNewGuild) {
+            this.file.guilds.push({
+                id: guild_id,
                 welcomeChannelID: null
             });
             fs.writeFileSync(this.name, JSON.stringify(this.file, null, 3));
@@ -25,9 +24,9 @@ class JSON_Config {
 
     insert(obj) {
         let haveToWrite = new Boolean(false);
-        this.file.servers.forEach((server) => {
-            if (server !== Object.assign(server, obj)) {
-                Object.assign(server, obj)
+        this.file.guilds.forEach((guild) => {
+            if (guild !== Object.assign(guild, obj)) {
+                Object.assign(guild, obj)
                 if (!haveToWrite) haveToWrite = true;
             }
         })
@@ -37,35 +36,27 @@ class JSON_Config {
 
     deleteProperty(key) {
         let haveToWrite = new Boolean(false);
-        this.file.servers.forEach((server) => {
-            delete server[key];
+        this.file.guilds.forEach((guild) => {
+            delete guild[key];
         })
         if (haveToWrite) 
             fs.writeFileSync(this.name, JSON.stringify(this.file, null, 3));
     }
 
-    alter(server_id, key, newValue) {
-        if (this.file.servers[this.getServerIndexWithID(server_id)][key] !== newValue) {
-            this.file.servers[this.getServerIndexWithID(server_id)][key] = newValue;
+    alter(guild_id, key, newValue) {
+        if (this.file.guilds[this.getServerIndexWithID(guild_id)][key] !== newValue) {
+            this.file.guilds[this.getServerIndexWithID(guild_id)][key] = newValue;
             fs.writeFileSync(this.name, JSON.stringify(this.file, null, 3));
         }
     }
 
-    getToken() {
-        return this.file.token;
+    getPropertyValue(guild_id, key) {
+        return this.file.guilds[this.getServerIndexWithID(guild_id)][key];
     }
 
-    getPropertyValue(server_id, key) {
-        return this.file.servers[this.getServerIndexWithID(server_id)][key];
-    }
-
-    getServerIndexWithID(server_id) {
-        return this.file.servers.findIndex((server) => server.id === server_id);
+    getServerIndexWithID(guild_id) {
+        return this.file.guilds.findIndex((guild) => guild.id === guild_id);
     }
 }
 
-const obj = new JSON_Config("config.json");
-
-obj.alter("647800671218958336", "welcomeChannelID", "test");
-
-module.exports.JSON_Config = JSON_Config;
+module.exports.JSON_Guilds = JSON_Guilds;

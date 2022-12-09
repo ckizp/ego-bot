@@ -1,9 +1,10 @@
 const { Client, GatewayIntentBits, Events, AttachmentBuilder} = require("discord.js");
-const { JSON_Config } = require("./JSON_Object");
+const { JSON_Guilds } = require("./JSON_Object");
+const { token, author_id } = require("./config.json")
 const Canvas = require("canvas");
 const fs = require("fs")
 
-const obj = new JSON_Config("config.json");
+const obj = new JSON_Guilds("guilds.json");
 
 const client = new Client({ intents: [
     GatewayIntentBits.Guilds,
@@ -15,7 +16,7 @@ const client = new Client({ intents: [
 });
 
 client.on(Events.ClientReady, async () => {
-    client.guilds.cache.map((guild) => obj.addServer(guild.id));
+    client.guilds.cache.map((guild) => obj.addGuild(guild.id));
     //console.log(JSON.parse(fs.readFileSync("commands.json")).commands);
 }); 
 
@@ -38,11 +39,11 @@ Canvas.loadImage("default.png")
         ctx.fill();
     });
 
-client.login(obj.getToken())
+client.login(token)
     .then(() => console.log("Connected"))
     .catch((error) => console.log("Error : " + error));
 
-client.on("guildCreate", (guild) => {
+client.on(Events.GuildCreate, (guild) => {
     obj.addServer(guild.id);
 })
 
@@ -61,15 +62,15 @@ client.on(Events.InteractionCreate, (interaction) => {
     interaction.deleteReply();
 });
 
-client.on("messageCreate", (message) => {
+client.on(Events.MessageCreate, (message) => {
     if (message.content === "test")
         message.reply("#750");
 });
 
-client.on("guildMemberAdd", async (member) => {
+client.on(Events.GuildMemberAdd, async (member) => {
     if (obj.getPropertyValue(member.guild.id, "welcomeChannelID") === null) return;
     if (!member.guild.channels.cache.map((channel) => channel.id).includes(obj.getPropertyValue(member.guild.id, "welcomeChannelID"))) {
-        obj.alter(member.guild.id, "welcomeChannel", null); return;
+        obj.alter(member.guild.id, "welcomeChannelID", null); return;
     }
 
     const welcomeChannel = client.channels.cache.get(obj.getPropertyValue(member.guild.id, "welcomeChannelID"));
