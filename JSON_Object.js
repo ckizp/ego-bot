@@ -16,7 +16,8 @@ class JSON_Config {
         if (isNewServer) {
             this.file.servers.push({
                 id: server_id,
-                welcomeBackgroundURL: "default.png"
+                welcomeBackgroundURL: "default.png",
+                welcomeChannelID: null
             });
             fs.writeFileSync(this.name, JSON.stringify(this.file, null, 3));
         }
@@ -50,6 +51,14 @@ class JSON_Config {
         }
     }
 
+    getToken() {
+        return this.file.token;
+    }
+
+    getPropertyValue(server_id, key) {
+        return this.file.servers[this.getServerIndexWithID(server_id)][key];
+    }
+
     getServerIndexWithID(server_id) {
         return this.file.servers.findIndex((server) => server.id === server_id);
     }
@@ -57,5 +66,6 @@ class JSON_Config {
 
 const obj = new JSON_Config("config.json");
 
+obj.alter("647800671218958336", "welcomeChannelID", "test");
 
 module.exports.JSON_Config = JSON_Config;

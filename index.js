@@ -1,6 +1,7 @@
-const { Client, GatewayIntentBits, AttachmentBuilder, EmbedBuilder } = require("discord.js");
-const { JSON_Config, Server } = require("./JSON_Object");
+const { Client, GatewayIntentBits, Events, AttachmentBuilder} = require("discord.js");
+const { JSON_Config } = require("./JSON_Object");
 const Canvas = require("canvas");
+const fs = require("fs")
 
 const obj = new JSON_Config("config.json");
 
@@ -13,15 +14,9 @@ const client = new Client({ intents: [
 ]
 });
 
-client.on("ready", async () => {
-    client.guilds.cache.map((guild) => {obj.addServer(guild.id)});
-    obj.insertAttribute({welcomeChannel: undefined});
-    await client.application.commands.set([
-        {
-            name: "serverinfos",
-            description: "display server informations"
-        }
-    ]);
+client.on(Events.ClientReady, async () => {
+    client.guilds.cache.map((guild) => obj.addServer(guild.id));
+    //console.log(JSON.parse(fs.readFileSync("commands.json")).commands);
 }); 
 
 var canvas = Canvas.createCanvas(1024, 500);
@@ -29,7 +24,7 @@ var ctx = canvas.getContext("2d");
 ctx.textAlign = "center";
 ctx.fillStyle = "#ffffff";
 
-Canvas.loadImage("blue-lock.png")
+Canvas.loadImage("default.png")
     .then(async (img) => {
         ctx.drawImage(img, 0, 0, 1024, 500);
         ctx.globalAlpha = 0.4;
@@ -43,7 +38,7 @@ Canvas.loadImage("blue-lock.png")
         ctx.fill();
     });
 
-client.login(obj.file.token)
+client.login(obj.getToken())
     .then(() => console.log("Connected"))
     .catch((error) => console.log("Error : " + error));
 
@@ -51,14 +46,14 @@ client.on("guildCreate", (guild) => {
     obj.addServer(guild.id);
 })
 
-client.on("interactionCreate", (interaction) => {
+client.on(Events.InteractionCreate, (interaction) => {
     let interactionChannel = interaction.channel;
     if (!interaction.isCommand()) return;
     switch (interaction.commandName) {
         case "serverinfos":
             /*let serverInfoEmbed = new EmbedBuilder()
             .setTitle(`Informations sur le serveur ${interaction.guild.cache.name}`)*/
-            interaction.channel.send(client.guilds.cache.map(m => `${m.name} | ${m.id}`).join("\n"))
+            //interaction.channel.send(client.guilds.cache.map(m => `${m.name} | ${m.id}`).join("\n"))
         break;
         default:
             return;
@@ -72,8 +67,12 @@ client.on("messageCreate", (message) => {
 });
 
 client.on("guildMemberAdd", async (member) => {
-    if (member.guild.id != "740468305655103580") return;
-    const welcomeChannel = client.channels.cache.get("1045427228290338887");
+    if (obj.getPropertyValue(member.guild.id, "welcomeChannelID") === null) return;
+    if (!member.guild.channels.cache.map((channel) => channel.id).includes(obj.getPropertyValue(member.guild.id, "welcomeChannelID"))) {
+        obj.alter(member.guild.id, "welcomeChannel", null); return;
+    }
+
+    const welcomeChannel = client.channels.cache.get(obj.getPropertyValue(member.guild.id, "welcomeChannelID"));
     let welcomeCanvas = canvas;
 
     welcomeCanvas.context.fillStyle = "#ffffff";
@@ -92,8 +91,7 @@ client.on("guildMemberAdd", async (member) => {
     });
     let attachment = new AttachmentBuilder(welcomeCanvas.toBuffer(), {name: `welcome-${member.id}.png`});
     try {
-        welcomeChannel.send()
-    welcomeChannel.send({content: `Bienvenue à ${member} sur le serveur ${member.guild.name} !`, files: [attachment]})
+        welcomeChannel.send({content: `Bienvenue à ${member} sur le serveur ${member.guild.name} !`, files: [attachment]})
     } catch(error) {
         console.log(error);
     }
