@@ -1,5 +1,10 @@
-const { Events } = require("discord.js");
+const { Events } = require('discord.js');
+const { JSON_Guilds } = require('../JSON_Object');
+const obj = new JSON_Guilds('./guilds.json')
 
-client.on(Events.GuildCreate, (guild) => {
-    obj.addServer(guild.id);
-})
+module.exports = {
+    name: Events.GuildCreate,
+    async execute(guild) {
+        obj.addGuild(guild.id, true);
+    }
+}
