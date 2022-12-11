@@ -1,6 +1,8 @@
 const { Events } = require("discord.js");
 const Canvas = require('canvas');
-const { execute } = require("./ready");
+const { JSON_Guilds } = require('../JSON_Object');
+const obj = new JSON_Guilds('./guilds.json')
+const { AttachmentBuilder } = require('discord.js')
 
 var canvas = Canvas.createCanvas(1024, 500);
 var ctx = canvas.getContext("2d");
@@ -23,13 +25,13 @@ Canvas.loadImage("./img/default.png")
 
 module.exports = {
     name: Events.GuildMemberAdd,
-    async execute(interaction) {
+    async execute(member) {
         if (obj.getPropertyValue(member.guild.id, "welcomeChannelID") === null) return;
         if (!member.guild.channels.cache.map((channel) => channel.id).includes(obj.getPropertyValue(member.guild.id, "welcomeChannelID"))) {
             obj.alter(member.guild.id, "welcomeChannelID", null); return;
         }
 
-        const welcomeChannel = client.channels.cache.get(obj.getPropertyValue(member.guild.id, "welcomeChannelID"));
+        const welcomeChannel = member.guild.channels.cache.get(obj.getPropertyValue(member.guild.id, "welcomeChannelID"));
         let welcomeCanvas = canvas;
 
         welcomeCanvas.context.fillStyle = "#ffffff";

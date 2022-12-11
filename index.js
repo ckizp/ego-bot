@@ -1,12 +1,9 @@
-const { Client, GatewayIntentBits, Collection, Partials, Events, ActivityType } = require('discord.js');
+const { Client, GatewayIntentBits, Collection, Partials, Events } = require('discord.js');
 const { JSON_Guilds } = require('./JSON_Object');
 const obj = new JSON_Guilds('guilds.json');
-const Canvas = require('canvas');
-const path = require('path')
-const fs = require('fs')
 
 const { Guilds, GuildMembers, GuildMessages } = GatewayIntentBits;
-const { User, Message, GuildMember, ThreadMember } = Partials;
+const { User, Message, GuildMember, ThreadMember, ActivityType } = Partials;
 
 const client = new Client({ intents: [ Guilds, GuildMembers, GuildMessages ],
     partials: [User, Message, GuildMember, ThreadMember]
@@ -19,8 +16,10 @@ client.commands = new Collection();
 const { loadEvents } = require('./handlers/eventHandler');
 loadEvents(client);
 
- client.login(client.config.token)
+client
+    .login(client.config.token)
     .then(() => {
-        console.log("Connected");
+        console.log(`client logged in as ${client.user.username}`);
         client.user.setActivity(`${client.guilds.cache.size} guilds!`, {type: ActivityType.Watching})
-    }).catch((error) => console.log("Error : " + error));
+    })
+    .catch((error) => console.log("Error : " + error));
