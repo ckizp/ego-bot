@@ -7,16 +7,18 @@ async function generateImage(description) {
 
     const openai = new OpenAIApi(configuration);
 
-    const prompt = description;
-
-    const response = await openai.createImage({
-        prompt,
-        n: 1,
-        size: '512x512',
-    });
-
-    const imageUrl = response.data.data[0].url;
-    return imageUrl;
+    const prompt = (description);
+    try {
+        const response = await openai.createImage({
+            prompt,
+            n: 1,
+            size: '512x512',
+        });
+        const imageUrl = response.data.data[0].url;
+        return imageUrl;
+    } catch(error) {
+        return 'The image could not be generated !';
+    }
 }
 
 module.exports = { generateImage };
