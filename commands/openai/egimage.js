@@ -5,19 +5,17 @@ module.exports = {
     data: new SlashCommandBuilder()
         .setName('egimage')
         .setDescription('create realistic images and art from a description in natural language')
-        .addStringOption((option) => option.setName('description').setDescription('text detailed description of the image')),
+        .addStringOption((option) => option.setName('prompt').setDescription('text detailed description of the image').setRequired(true)),
         /**
          * @param {ChatInputCommandInteraction} interaction
          */
-        async execute(interaction) {
-            let desc = interaction.options.getString('description');
+    async execute(interaction) {
+        let prompt = interaction.options.getString('prompt');
 
-            desc = ((desc) ? (desc) : ('Ego Jinpachi'));
+        interaction.deferReply();
 
-            interaction.reply("loading image...");
+        const url = await generateImage(prompt);
 
-            const url = await generateImage(desc);
-
-            interaction.editReply(url);
-        }
+        interaction.editReply(url);
+    }
 }

@@ -1,8 +1,11 @@
-const { Events } = require("discord.js");
+const { Events, Client } = require('discord.js');
 
 module.exports = {
-	name: Events.InteractionCreate,
-	async execute(interaction) {
+	name: Events.InteractionCreate
+	/**
+	 * @param {Client} client 
+	 */,
+	async execute(interaction, client) {
 		if (!interaction.isChatInputCommand()) return;
 
 		const command = interaction.client.commands.get(interaction.commandName);
@@ -13,10 +16,11 @@ module.exports = {
 		}
 
 		try {
-			await command.execute(interaction);
+			let client = interaction.client;
+			await command.execute(interaction, client);
 		} catch (error) {
 			console.error(`Error executing ${interaction.commandName}`);
 			console.error(error);
 		}
-	},
+	}
 };

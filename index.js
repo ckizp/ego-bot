@@ -1,17 +1,17 @@
-const { Client, GatewayIntentBits, Collection, Partials, Events } = require('discord.js');
-const { JSON_Guilds } = require('./JSON_Object');
-const obj = new JSON_Guilds('guilds.json');
+const { Client, GatewayIntentBits, Collection, Partials, ActivityType } = require('discord.js');
 
-const { Guilds, GuildMembers, GuildMessages } = GatewayIntentBits;
-const { User, Message, GuildMember, ThreadMember, ActivityType } = Partials;
+const { Guilds, GuildMembers, GuildMessages, GuildVoiceStates } = GatewayIntentBits;
+const { User, Message, GuildMember, ThreadMember } = Partials;
 
-const client = new Client({ intents: [ Guilds, GuildMembers, GuildMessages ],
+const client = new Client({ intents: [ Guilds, GuildMembers, GuildMessages, GuildVoiceStates ],
     partials: [User, Message, GuildMember, ThreadMember]
 });
 
 client.config = require("./config.json");
 client.events = new Collection();
 client.commands = new Collection();
+const { Player } = require('discord-player');
+global.player = new Player(client);
 
 const { loadEvents } = require('./handlers/eventHandler');
 loadEvents(client);
@@ -23,3 +23,7 @@ client
         client.user.setActivity(`${client.guilds.cache.size} guilds!`, {type: ActivityType.Watching})
     })
     .catch((error) => console.log("Error : " + error));
+
+module.exports = {
+    client
+}
