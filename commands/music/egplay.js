@@ -1,24 +1,29 @@
-const { SlashCommandBuilder, ChatInputCommandInteraction, Client, GuildVoiceStates } = require('discord.js');
-const { QueryType } = require ('discord-player');
+const { SlashCommandBuilder, ChatInputCommandInteraction, GuildVoiceStates } = require('discord.js');
+const { QueryType, Queue } = require ('discord-player');
+const fs = require('fs')
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('egplay')
-        .setDescription('play song')
-        .addStringOption((option) => option.setName('song').setDescription('the song you want to play').setRequired(true)),
+        .setDescription('Play music')
+        .addStringOption((option) => option.setName('query').setDescription('Music search query or link').setRequired(true)),
         /**
          * @param {ChatInputCommandInteraction} interaction
-         * @param {Client} client
          */
-    async execute(interaction) {
+    async execute(interaction, client) {
         await interaction.deferReply();
-        const song = interaction.options.getString('song'); 
+        if (!interaction.member.voice.channel) return interaction.editReply('You must first be in a channel !');
+        const query = interaction.options.getString('query'); 
 
-        const queue = await player.createQueue(interaction.guild, {
+        const queue = new Queue(client.player, interaction.guild, {
+            ytdlOptions: {
+                filter: 'audioonly',
+                highWaterMark: 1 << 30,
+                dlChunkSize: 0,
+            },
             metadata: interaction.channel,
             leaveOnEnd: true,
-            initialVolume: 60,
-            spotifyBridge: true
+            initialVolume: 50
         });
 
         try {
@@ -28,17 +33,22 @@ module.exports = {
             return interaction.editReply({content: `Don't have the permission to join ${interaction.member.voice.channel}`, ephemeral: true});
         }
         
-        const track = await player.search(song, {
+        const track = await client.player.search(query, {
             requestedBy: interaction.member,
             searchEngine: QueryType.AUTO
-        }).then(x => x.tracks[0]);
+        });
 
         if (!track) {
-            return interaction.editReply({content: `Song '${song}' not found`, ephemeral: true});
+            return interaction.editReply({content: `Song '${query}' not found`, ephemeral: true});
         }
-        
+
         await interaction.editReply(`Loading your ${track.playlist ? 'playlist' : 'track'}`);
 
-        if (!queue.playing) await queue.play(track);
+        track.playlist ? queue.addTracks(track.tracks) : queue.addTrack(track.tracks[0]);
+
+        if (!queue.playing) await queue.play();
+
+        console.log(queue)
+        console.log(queue.tracks);
     }
 }

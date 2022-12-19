@@ -1,24 +1,26 @@
-const { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, GuildBan, GuildBanManager } = require('discord.js');
+const { SlashCommandBuilder, ChatInputCommandInteraction, PermissionFlagsBits, GuildBanManager } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('egban')
         .setDescription('ban user')
-        .addUserOption((option) => option.setName('member').setDescription('user to ban'))
-        .addStringOption((option) => option.setName('reason').setDescription('reason')),
-    /**
-     * @param {ChatInputCommandInteraction} interaction
-     */
+        .addUserOption((option) => option.setName('member').setDescription('user to ban').setRequired(true))
+        .addStringOption((option) => option.setName('time').setDescription('If you want to ban someone for a certain amount of time'))
+        .addStringOption((option) => option.setName('reason').setDescription('reason of the ban')),
+        /**
+         * @param {ChatInputCommandInteraction} interaction
+         */
     async execute(interaction) {
-        const member = interaction.options.getMember('member')
+        interaction.deferReply();
+
+        const member = interaction.options.getMember('member');
+        const time = interaction.options.getString('time');
         const reason = interaction.options.getString('reason');
 
-        if (!interaction.memberPermissions.has('BanMembers')) {
-            interaction.reply('Don\'t have the permission to perform this command!');
-            return;
-        }
+        if (!interaction.member.permissions.has(PermissionFlagsBits.BanMembers)
+        || !interaction.guild.me) return interaction.reply('Don\'t have the permission to perform this command!');
 
-        member.ban({reason: reason});
 
+        interaction.guild.bans.create(member.id, {reason: reason});
     }
 }

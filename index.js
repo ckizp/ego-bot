@@ -11,7 +11,9 @@ client.config = require("./config.json");
 client.events = new Collection();
 client.commands = new Collection();
 const { Player } = require('discord-player');
-global.player = new Player(client);
+client.player = new Player(client);
+const { registerPlayerEvents } = require('./playerEvents');
+registerPlayerEvents(client.player);
 
 const { loadEvents } = require('./handlers/eventHandler');
 loadEvents(client);
