@@ -1,6 +1,5 @@
 const { SlashCommandBuilder, ChatInputCommandInteraction, GuildVoiceStates } = require('discord.js');
 const { QueryType, Queue } = require ('discord-player');
-const fs = require('fs')
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -10,20 +9,21 @@ module.exports = {
         /**
          * @param {ChatInputCommandInteraction} interaction
          */
-    async execute(interaction, client) {
+    async execute(interaction) {
         await interaction.deferReply();
         if (!interaction.member.voice.channel) return interaction.editReply('You must first be in a channel !');
         const query = interaction.options.getString('query'); 
 
-        const queue = new Queue(client.player, interaction.guild, {
+        const queue = client.player.createQueue(interaction.guild, {
             ytdlOptions: {
                 filter: 'audioonly',
                 highWaterMark: 1 << 30,
-                dlChunkSize: 0,
+                dlChunkSize: 0
             },
             metadata: interaction.channel,
             leaveOnEnd: true,
-            initialVolume: 50
+            initialVolume: 75,
+            spotifyBridge: true
         });
 
         try {
@@ -32,7 +32,7 @@ module.exports = {
             queue.destroy();
             return interaction.editReply({content: `Don't have the permission to join ${interaction.member.voice.channel}`, ephemeral: true});
         }
-        
+
         const track = await client.player.search(query, {
             requestedBy: interaction.member,
             searchEngine: QueryType.AUTO
@@ -47,8 +47,5 @@ module.exports = {
         track.playlist ? queue.addTracks(track.tracks) : queue.addTrack(track.tracks[0]);
 
         if (!queue.playing) await queue.play();
-
-        console.log(queue)
-        console.log(queue.tracks);
     }
 }

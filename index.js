@@ -3,17 +3,17 @@ const { Client, GatewayIntentBits, Collection, Partials, ActivityType } = requir
 const { Guilds, GuildMembers, GuildMessages, GuildVoiceStates } = GatewayIntentBits;
 const { User, Message, GuildMember, ThreadMember } = Partials;
 
-const client = new Client({ intents: [ Guilds, GuildMembers, GuildMessages, GuildVoiceStates ],
+global.client = new Client({ intents: [ Guilds, GuildMembers, GuildMessages, GuildVoiceStates ],
     partials: [User, Message, GuildMember, ThreadMember]
 });
 
 client.config = require("./config.json");
 client.events = new Collection();
 client.commands = new Collection();
+
 const { Player } = require('discord-player');
 client.player = new Player(client);
-const { registerPlayerEvents } = require('./playerEvents');
-registerPlayerEvents(client.player);
+require('./playerEvents');
 
 const { loadEvents } = require('./handlers/eventHandler');
 loadEvents(client);
@@ -25,7 +25,3 @@ client
         client.user.setActivity(`${client.guilds.cache.size} guilds!`, {type: ActivityType.Watching})
     })
     .catch((error) => console.log("Error : " + error));
-
-module.exports = {
-    client
-}
