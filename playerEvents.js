@@ -23,11 +23,11 @@ client.player.on('error', (queue, error) => {
 });
 
 client.player.on('queueEnd', (queue) => {
-
+    queue.metadata.send({content: `Nothing to play `});
 });
 
 client.player.on('trackAdd', (queue, track) => {
-
+    queue.metadata.send({content: `The song '${track.title}' has been added to the queue !`});
 });
 
 client.player.on('trackEnd', (queue, track) => {
