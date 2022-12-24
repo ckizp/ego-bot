@@ -37,12 +37,12 @@ module.exports = {
             requestedBy: interaction.member,
             searchEngine: QueryType.AUTO
         });
-        
+
         if (!track) {
             return interaction.editReply({content: `Song '${query}' not found`, ephemeral: true});
         }
 
-        await interaction.editReply(`Loading your ${track.playlist ? 'playlist' : 'track'}`);
+        interaction.deleteReply();
 
         track.playlist ? queue.addTracks(track.tracks) : queue.addTrack(track.tracks[0]);
 

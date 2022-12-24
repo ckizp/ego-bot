@@ -1,4 +1,5 @@
 const { SlashCommandBuilder, ChatInputCommandInteraction, EmbedBuilder } = require('discord.js');
+const { requestGif } = require('../../functions/request')
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -10,17 +11,16 @@ module.exports = {
          */
     async execute(interaction) {
         await interaction.deferReply();
-
         const member = interaction.options.getMember('member');
-        const response = await fetch('https://api.giphy.com/v1/gifs/random?api_key=NZTa6H8KhqZnPWPOsQQOuvv6kZXf7ixq&tag=anime+hug');
-        const result = await response.json();
+
+        const data = await requestGif('anime hug');
 
         const embed = new EmbedBuilder()
             .setColor(0x000000 + Math.floor(Math.random() * 16777215))
             .setTitle('EGHUG')
-            .setURL(result.data.url)
+            .setURL(data.url)
             .setDescription(`${interaction.member} hugs ${member}`)
-            .setImage('https://media.giphy.com/media/' + result.data.id + '/giphy.gif');
+            .setImage(data.gif);
 
         interaction.editReply({embeds: [embed]});
     }

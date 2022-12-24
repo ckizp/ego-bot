@@ -2,11 +2,28 @@
    "guilds": [
       {
          "id": "647800671218958336",
-         "welcomeChannelID": null
+         "welcomeChannelID": null,
+         "tempbanlist": []
       },
       {
          "id": "740468305655103580",
-         "welcomeChannelID": "1046215343011532940"
+         "welcomeChannelID": "740468306116608052",
+         "tempbanlist": []
+      },
+      {
+         "id": "981582788966895616",
+         "welcomeChannelID": "1054917816731566160",
+         "tempbanlist": []
+      },
+      {
+         "id": "1047217698880356373",
+         "welcomeChannelID": "1047217698880356376",
+         "tempbanlist": []
+      },
+      {
+         "id": "782639173882216499",
+         "welcomeChannelID": null,
+         "tempbanlist": []
       }
    ]
 }

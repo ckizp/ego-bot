@@ -2,7 +2,7 @@ async function generateImage(prompt) {
     const { Configuration, OpenAIApi } = require('openai');
 
     const configuration = new Configuration({
-        apiKey: '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',
+        apiKey: process.env.OPENAI_API_KEY,
     });
 
     const openai = new OpenAIApi(configuration);
