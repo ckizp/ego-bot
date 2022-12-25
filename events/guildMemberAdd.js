@@ -1,4 +1,4 @@
-const { Events, GuildMember } = require("discord.js");
+const { Events, GuildMember, PermissionFlagsBits } = require("discord.js");
 const Canvas = require('canvas');
 const { JSON_Guilds } = require('../JSON_Object');
 const obj = new JSON_Guilds('./guilds.json')
@@ -31,14 +31,20 @@ module.exports = {
      */
     async execute(member) {
 
+        const bot = member.guild.members.cache.find((member) => member.id === member.client.application.id);
+
+
         await guild_model.findOne({id: member.guild.id})
             .then(async (data) => {
                 if (data.addons.autorole.enabled) { 
                     const role = member.guild.roles.cache.find((role) => role.id === data.addons.autorole.role);
-                    member.roles.add(role);
+                    if (bot.permissions.has(PermissionFlagsBits.ManageRoles)) {
+                        if (role.comparePositionTo(bot.roles.highest) < 0 ) {
+                            member.roles.add(role);
+                        }
                     }
                 }
-            );
+            });
 
         if (obj.getPropertyValue(member.guild.id, "welcomeChannelID") === null) return;
         if (!member.guild.channels.cache.map((channel) => channel.id).includes(obj.getPropertyValue(member.guild.id, "welcomeChannelID"))) {
