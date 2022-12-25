@@ -1,8 +1,9 @@
-const { Events } = require("discord.js");
+const { Events, GuildMember } = require("discord.js");
 const Canvas = require('canvas');
 const { JSON_Guilds } = require('../JSON_Object');
 const obj = new JSON_Guilds('./guilds.json')
 const { AttachmentBuilder } = require('discord.js')
+const guild_model = require('../models/guild');
 
 var canvas = Canvas.createCanvas(1024, 500);
 var ctx = canvas.getContext("2d");
@@ -25,7 +26,20 @@ Canvas.loadImage("./img/default.png")
 
 module.exports = {
     name: Events.GuildMemberAdd,
+    /**
+     * @param {GuildMember} member 
+     */
     async execute(member) {
+
+        await guild_model.findOne({id: member.guild.id})
+            .then(async (data) => {
+                if (data.addons.autorole.enabled) { 
+                    const role = member.guild.roles.cache.find((role) => role.id === data.addons.autorole.role);
+                    member.roles.add(role);
+                    }
+                }
+            );
+
         if (obj.getPropertyValue(member.guild.id, "welcomeChannelID") === null) return;
         if (!member.guild.channels.cache.map((channel) => channel.id).includes(obj.getPropertyValue(member.guild.id, "welcomeChannelID"))) {
             obj.alter(member.guild.id, "welcomeChannelID", null); return;

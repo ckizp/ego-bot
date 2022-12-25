@@ -15,6 +15,7 @@ module.exports = {
 
         const channel = interaction.options.getChannel('channel');
         obj.alter(interaction.guild.id, "welcomeChannelID", (channel) ? channel.id : interaction.channel.id);
-        return interaction.reply("Ce salon est désormais le salon d'accueil du serveur !");
+
+        interaction.reply("Ce salon est désormais le salon d'accueil du serveur !");
     }
 }

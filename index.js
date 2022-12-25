@@ -20,10 +20,15 @@ require('./playerEvents');
 const { loadEvents } = require('./handlers/eventHandler');
 loadEvents(client);
 
+const mongoose = require('mongoose');
+mongoose.set('strictQuery', true);
+mongoose.connect(process.env.DB_URL)
+    .then(() => console.log('MongoDB connection successful'));
+
 client
     .login(process.env.DISCORD_TOKEN)
     .then(() => {
         console.log(`client logged in as ${client.user.username}`);
-        client.user.setActivity(`${client.guilds.cache.size} guilds!`, {type: ActivityType.Watching})
+        client.user.setActivity(`${client.guilds.cache.size} guilds!`, {type: ActivityType.Watching});
     })
     .catch((error) => console.log("Error : " + error));
