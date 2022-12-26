@@ -14,6 +14,11 @@ module.exports = mongoose.model('Guild', new mongoose.Schema({
             role: null
         },
 
+        autonick: {
+            enabled: false,
+            nickname: null
+        },
+
         welcome: {
             enabled: false,
             channel: null,
