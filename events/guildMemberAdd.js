@@ -1,9 +1,10 @@
-const { Events, GuildMember, PermissionFlagsBits } = require("discord.js");
+const { Events, GuildMember, PermissionFlagsBits, ButtonInteraction } = require("discord.js");
 const Canvas = require('canvas');
 const { JSON_Guilds } = require('../JSON_Object');
 const obj = new JSON_Guilds('./guilds.json')
 const { AttachmentBuilder } = require('discord.js')
 const guild_model = require('../models/guild');
+const guild = require("../models/guild");
 
 var canvas = Canvas.createCanvas(1024, 500);
 var ctx = canvas.getContext("2d");
@@ -32,19 +33,31 @@ module.exports = {
     async execute(member) {
 
         const bot = member.guild.members.cache.find((member) => member.id === member.client.application.id);
+        const addons = (await guild_model.findOne({id: member.guild.id})).addons;
 
+        if (addons.autonick.enabled) {
+            if (bot.permissions.has(PermissionFlagsBits.ChangeNickname))
+                member.setNickname(addons.autonick.nickname);
+        }
 
-        await guild_model.findOne({id: member.guild.id})
-            .then(async (data) => {
-                if (data.addons.autorole.enabled) { 
-                    const role = member.guild.roles.cache.find((role) => role.id === data.addons.autorole.role);
-                    if (bot.permissions.has(PermissionFlagsBits.ManageRoles)) {
-                        if (role.comparePositionTo(bot.roles.highest) < 0 ) {
-                            member.roles.add(role);
-                        }
-                    }
+        const role = member.guild.roles.cache.find((role) => role.id === addons.autorole.role);
+        if (!role) {
+            await guild_model.updateOne({id: member.guild.id}, {
+            "addons.autorole": {
+                enabled: false,
+                    role: null
                 }
-            });
+             });
+        }
+
+        if (addons.autorole.enabled) { 
+            if (bot.permissions.has(PermissionFlagsBits.ManageRoles)) {
+                if (role.comparePositionTo(bot.roles.highest) < 0 ) {
+                    member.roles.add(role);
+                }
+            }
+        }
+        
 
         if (obj.getPropertyValue(member.guild.id, "welcomeChannelID") === null) return;
         if (!member.guild.channels.cache.map((channel) => channel.id).includes(obj.getPropertyValue(member.guild.id, "welcomeChannelID"))) {
