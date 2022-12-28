@@ -31,7 +31,6 @@ module.exports = {
      * @param {GuildMember} member 
      */
     async execute(member) {
-
         const bot = member.guild.members.cache.find((member) => member.id === member.client.application.id);
         const addons = (await guild_model.findOne({id: member.guild.id})).addons;
 
@@ -58,7 +57,6 @@ module.exports = {
             }
         }
         
-
         if (obj.getPropertyValue(member.guild.id, "welcomeChannelID") === null) return;
         if (!member.guild.channels.cache.map((channel) => channel.id).includes(obj.getPropertyValue(member.guild.id, "welcomeChannelID"))) {
             obj.alter(member.guild.id, "welcomeChannelID", null); return;
