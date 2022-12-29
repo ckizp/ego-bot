@@ -1,29 +1,7 @@
-const { Events, GuildMember, PermissionFlagsBits, ButtonInteraction } = require("discord.js");
+const { Events, GuildMember, PermissionFlagsBits } = require("discord.js");
 const Canvas = require('canvas');
-const { JSON_Guilds } = require('../JSON_Object');
-const obj = new JSON_Guilds('./guilds.json')
 const { AttachmentBuilder } = require('discord.js')
 const guild_model = require('../models/guild');
-const guild = require("../models/guild");
-
-var canvas = Canvas.createCanvas(1024, 500);
-var ctx = canvas.getContext("2d");
-ctx.textAlign = "center";
-ctx.fillStyle = "#ffffff";
-
-Canvas.loadImage("./img/default.png")
-    .then(async (img) => {
-        ctx.drawImage(img, 0, 0, 1024, 500);
-        ctx.globalAlpha = 0.4;
-        ctx.beginPath();
-        ctx.arc(512, 166, 128, 0, Math.PI * 2, true);
-        ctx.fillStyle = "#000000";
-        ctx.fillRect(30, 30, 964, 440);
-        ctx.closePath();
-        ctx.globalAlpha = 1.0;
-        ctx.stroke();
-        ctx.fill();
-    });
 
 module.exports = {
     name: Events.GuildMemberAdd,
@@ -31,7 +9,7 @@ module.exports = {
      * @param {GuildMember} member 
      */
     async execute(member) {
-        const bot = member.guild.members.cache.find((member) => member.id === member.client.application.id);
+        const bot = member.guild.members.cache.get(member.client.application.id);
         const addons = (await guild_model.findOne({id: member.guild.id})).addons;
 
         if (addons.autonick.enabled) {
@@ -39,14 +17,15 @@ module.exports = {
                 member.setNickname(addons.autonick.nickname);
         }
 
-        const role = member.guild.roles.cache.find((role) => role.id === addons.autorole.role);
+        const role = member.guild.roles.cache.get(addons.autorole.role);
         if (!role) {
             await guild_model.updateOne({id: member.guild.id}, {
-            "addons.autorole": {
-                enabled: false,
+                "addons.autorole": {
+                    enabled: false,
                     role: null
                 }
-             });
+            });
+            addons.autorole.enabled = false;
         }
 
         if (addons.autorole.enabled) { 
@@ -57,12 +36,56 @@ module.exports = {
             }
         }
         
-        if (obj.getPropertyValue(member.guild.id, "welcomeChannelID") === null) return;
-        if (!member.guild.channels.cache.map((channel) => channel.id).includes(obj.getPropertyValue(member.guild.id, "welcomeChannelID"))) {
-            obj.alter(member.guild.id, "welcomeChannelID", null); return;
+        if (!addons.welcome.enabled) return;
+
+        const welcomeChannel = member.guild.channels.cache.get(addons.welcome.channel);
+        if (!bot.permissionsIn(welcomeChannel).has(PermissionFlagsBits.SendMessages)) return;
+
+        if (!welcomeChannel) {
+            guild_model.updateOne({id: member.guild.id}, {
+                "addons.welcome": {
+                    enabled: false,
+                    channel: null,
+                    background: null
+                }
+            });
+            return;
         }
 
-        const welcomeChannel = member.guild.channels.cache.get(obj.getPropertyValue(member.guild.id, "welcomeChannelID"));
+        var canvas = Canvas.createCanvas(1024, 500);
+        var ctx = canvas.getContext("2d");
+        ctx.textAlign = "center";
+        ctx.fillStyle = "#ffffff";
+        
+        let img = new Canvas.Image();
+
+        if (addons.welcome.background) {
+            const url = new URL(addons.welcome.background);
+            if (url || !addons.welcome.background) {
+                img = await Canvas.loadImage(url.href);
+            } else {
+                img = await Canvas.loadImage('img/default.png');
+                if (!addons.welcome.background) {
+                    await guild_model.updateOne({id: member.guild.id}, {
+                        "addons.welcome.background": null
+                    })
+                }
+            }
+        } else {
+            img = await Canvas.loadImage('img/default.png');
+        }
+
+        ctx.drawImage(img, 0, 0, 1024, 500);
+        ctx.globalAlpha = 0.4;
+        ctx.beginPath();
+        ctx.arc(512, 166, 128, 0, Math.PI * 2, true);
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(30, 30, 964, 440);
+        ctx.closePath();
+        ctx.globalAlpha = 1.0;
+        ctx.stroke();
+        ctx.fill();
+
         let welcomeCanvas = canvas;
 
         welcomeCanvas.context.fillStyle = "#ffffff";
