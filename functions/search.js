@@ -1,16 +1,14 @@
-const dictionary = [];
-
-function getClosestWord(word) {
+function search(word, dictionary) {
   let minDistance = Number.MAX_VALUE;
-  let closestWord = '';
+  let result = '';
   for (let i = 0; i < dictionary.length; i++) {
     const distance = levenshteinDistance(word, dictionary[i]);
     if (distance < minDistance) {
       minDistance = distance;
-      closestWord = dictionary[i];
+      result = dictionary[i];
     }
   }
-  return closestWord;
+  return result;
 }
 
 function levenshteinDistance(a, b) {
@@ -45,6 +43,4 @@ function levenshteinDistance(a, b) {
   return matrix[b.length][a.length];
 }
 
-
-const userInput = '';
-console.log(getClosestWord(userInput));
+module.exports = { search }
